@@ -13,6 +13,7 @@ import {
   IonToolbar } from '@ionic/react';
 import { Redirect } from 'react-router';
 import { useAuth } from '../auth';
+import { createUserWithEmailAndPassword } from '@firebase/auth';
 import { auth } from '../firebase';
 import { useState } from 'react';
 
@@ -25,7 +26,7 @@ const RegisterPage: React.FC = () => {
   const handleRegister = async () => {
     try {
       setStatus({ loading:true, error: false });
-      const credential = await auth.createUserWithEmailAndPassword(email, password);
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
       console.log('credential:', credential); 
     } catch (error){
       setStatus({ loading:false, error: true });

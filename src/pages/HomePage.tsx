@@ -16,6 +16,7 @@ import {
 import { add as addIcon } from 'ionicons/icons';
 import React, { useEffect, useState } from 'react';
 import { firestore } from '../firebase';
+import { collection, query, limit, onSnapshot, orderBy } from '@firebase/firestore';
 import { Entry, toEntry } from '../models';
 import { useAuth } from '../auth';
 import { formatDate } from '../date';
@@ -24,10 +25,9 @@ const HomePage: React.FC = () => {
   const { userId } = useAuth();
   const [ entries, setEntries ] = useState<Entry[]>([]);
   useEffect(() => {
-    const entriesRef = firestore.collection('users').doc(userId)
-      .collection('entries');
-    return entriesRef.orderBy('date', 'desc').limit(7)
-    .onSnapshot(( { docs }) => setEntries(docs.map(toEntry)));
+    const entriesRef = collection(firestore, 'users', userId, 'entries');
+    const entriesQuery = query(entriesRef, orderBy('date', 'desc'), limit(7))
+    return onSnapshot(entriesRef, ({ docs }) => setEntries(docs.map(toEntry)));
   }, [userId]);
 
   // console.log('[HomePage] render entries:', entries);
@@ -35,7 +35,7 @@ const HomePage: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Home</IonTitle>
+          <IonTitle>Daily Moments</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">

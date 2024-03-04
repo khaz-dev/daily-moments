@@ -1,5 +1,5 @@
 import { 
-  IonApp, IonLoading,
+  IonApp, IonLoading, getPlatforms,
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import React from 'react';
@@ -13,11 +13,12 @@ import RegisterPage from './pages/RegisterPage';
 
 const App: React.FC = () => {
   const { loading, auth } = useAuthInit();
-
-  console.log(`rendering App with auth:`, auth);
   if (loading) {
     return <IonLoading isOpen />
   }
+
+  console.log('platform:', getPlatforms());
+  console.log(`rendering App with auth:`, auth);
   return (
     <IonApp>
       <AuthContext.Provider value={ auth }>

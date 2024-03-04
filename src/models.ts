@@ -1,3 +1,5 @@
+import { DocumentSnapshot } from '@firebase/firestore';
+
 export interface Entry {
     id: string;
     date: string;
@@ -6,6 +8,6 @@ export interface Entry {
     description: string;
 }
 
-export function toEntry(doc): Entry {
-    return { id: doc.id, ...doc.data()};
+export function toEntry(doc: DocumentSnapshot): Entry {
+    return { id: doc.id, ...doc.data()} as Entry;
 }

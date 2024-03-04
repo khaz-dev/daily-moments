@@ -13,6 +13,7 @@ import { trash as trashIcon } from 'ionicons/icons';
 import React, { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import { firestore } from '../firebase';
+import { deleteDoc, doc, getDoc } from '@firebase/firestore';
 import { Entry, toEntry } from '../models';
 import { useAuth } from '../auth';
 import { formatDate } from '../date';
@@ -27,15 +28,13 @@ const EntryPage: React.FC = () => {
   const { id } = useParams<RouteParams>();
   const [ entry, setEntry] = useState<Entry>();
   useEffect(() => {
-    const entryRef = firestore.collection('users').doc(userId)
-    .collection('entries').doc(id);
-    entryRef.get().then((doc) => setEntry(toEntry(doc)));
+    const entryRef = doc(firestore, 'users', userId, 'entries', id);
+    getDoc(entryRef).then((doc) => setEntry(toEntry(doc)));
   }, [userId, id]);
 
   const handleDelete = async () => {
-    const entryRef = firestore.collection('users').doc(userId)
-      .collection('entries').doc(id);
-      await entryRef.delete();
+    const entryRef = doc(firestore, 'users', userId, 'entries', id);
+      await deleteDoc(entryRef);
       history.goBack();
   }
 

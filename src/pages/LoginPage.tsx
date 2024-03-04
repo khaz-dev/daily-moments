@@ -14,6 +14,7 @@ import {
 import { Redirect } from 'react-router';
 import { useAuth } from '../auth';
 import { auth } from '../firebase';
+import { signInWithEmailAndPassword } from '@firebase/auth';
 import { useState } from 'react';
 
 const LoginPage: React.FC = () => {
@@ -25,7 +26,7 @@ const LoginPage: React.FC = () => {
   const handleLogin = async () => {
     try {
       setStatus({ loading:true, error: false });
-      const credential = await auth.signInWithEmailAndPassword(email, password);
+      const credential = await signInWithEmailAndPassword(auth, email, password);
       console.log('credential:', credential); 
     } catch (error){
       setStatus({ loading:false, error: true });

@@ -11,19 +11,23 @@ import {
   IonPage,  
   IonTextarea,  
   IonTitle, 
-  IonToolbar
+  IonToolbar,
+  isPlatform
 } from '@ionic/react';
-  import React, { useEffect, useRef, useState } from 'react';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import React, { useEffect, useRef, useState } from 'react';
 import { firestore, storage } from '../firebase';
+import { addDoc, collection } from '@firebase/firestore';
+import { getDownloadURL, ref as storageRef, uploadBytes } from '@firebase/storage';
 import { useAuth } from '../auth';
 import { useHistory } from 'react-router';
 
 async function savePicture(blobUrl, userId) {
-  const pictureRef = storage.ref(`/users/${userId}/pictures/${Date.now()}`);
+  const pictureRef = storageRef(storage, `/users/${userId}/pictures/${Date.now()}`);
   const response = await fetch(blobUrl);
   const blob = await response.blob();
-  const snapshot = await pictureRef.put(blob);
-  const url = await snapshot.ref.getDownloadURL();
+  const snapshot = await uploadBytes(pictureRef, blob);
+  const url = getDownloadURL(snapshot.ref);
   console.log('saved picture:', url);
   return url;
 }
@@ -53,15 +57,31 @@ const AddEntryPage: React.FC = () => {
     }
   }
 
+  const handlePictureClick = async () => {
+    if (isPlatform('capacitor')){
+      try {
+        const photo = await Camera.getPhoto({
+          resultType: CameraResultType.Uri,
+          source: CameraSource.Prompt,
+          width: 600,
+        });
+        setPictureUrl(photo.webPath);
+      } catch (error) {
+        console.log('Camera error:', error);
+      }
+    } else {
+      fileInputRef.current.click();
+    }
+  };
+
   const handleSave = async () => {
-    const entriesRef = firestore.collection('users').doc(userId)
-      .collection('entries');
+    const entriesRef = collection(firestore, 'users', userId, 'entries');
     const entryData = { date, title, pictureUrl, description };
-    if (pictureUrl.startsWith('blob:')) {
+    if (!pictureUrl.startsWith('/assets')) {
       entryData.pictureUrl = await savePicture(pictureUrl, userId);
     }
 
-    const entryRef = await entriesRef.add(entryData);
+    const entryRef = await addDoc(entriesRef, entryData);
     console.log('saved:', entryRef.id);
     history.goBack();
   };
@@ -94,7 +114,7 @@ const AddEntryPage: React.FC = () => {
               onChange={handleFileChange}
             />
             <img src={pictureUrl} alt="" style={{ cursor: 'pointer' }}
-            onClick={() => fileInputRef.current.click()} />
+            onClick={handlePictureClick} />
           </IonItem>
           <IonItem>
             <IonLabel position="stacked">Description</IonLabel>
